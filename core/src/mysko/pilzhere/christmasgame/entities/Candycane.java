@@ -10,18 +10,18 @@ import com.badlogic.gdx.utils.Disposable;
 import mysko.pilzhere.christmasgame.Utils;
 import mysko.pilzhere.christmasgame.screens.GameScreen;
 
-public class Tree extends Entity implements IEntity, Disposable {
+public class Candycane extends Entity implements IEntity, Disposable {
 	private Texture texture;
 	private Sprite sprite;
 
-	public Tree(GameScreen screen, Vector3 position) {
+	public Candycane(GameScreen screen, Vector3 position) {
 		super(screen, position);
 
-		texture = screen.assMan.get("tree01.png", Texture.class);
+		texture = screen.assMan.get("candyCane.png", Texture.class);
 		sprite = new Sprite(texture);
 		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
 		
-		System.out.println("Tree added!");
+		System.out.println("Candy added!");
 	}
 
 	private final Vector3 projPos = new Vector3();
@@ -31,16 +31,15 @@ public class Tree extends Entity implements IEntity, Disposable {
 	public void tick(float delta) {
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
 		
-//		TODO Resizing window makes trees fly away!
 		setSpritePosition();
-		setRectanglePosition();
+		setRectanglePosition();		
 		
 		super.tick(delta);
 	}
 
 	@Override
 	public void onTouch(float delta) {
-		System.out.println("Tree touched!");
+		System.out.println("Candy touched!");
 	}
 	
 	@Override
@@ -61,7 +60,7 @@ public class Tree extends Entity implements IEntity, Disposable {
 	@Override
 	public void setSpritePosition() {
 		sprite.setX(screenPos.x - sprite.getWidth() / 2);
-		sprite.setY(screenPos.y - sprite.getHeight() / 2);		
+		sprite.setY(screenPos.y - sprite.getHeight() / 2);
 	}
 
 	@Override

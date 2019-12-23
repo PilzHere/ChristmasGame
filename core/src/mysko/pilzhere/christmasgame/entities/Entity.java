@@ -2,6 +2,7 @@ package mysko.pilzhere.christmasgame.entities;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
 import mysko.pilzhere.christmasgame.screens.GameScreen;
@@ -12,6 +13,7 @@ public class Entity {
 	
 	public final Vector3 position;
 	public float distFromCam;
+	public Rectangle rect;
 	
 	public Entity(GameScreen screen, Vector3 position) {
 		this.screen = screen;
@@ -26,6 +28,9 @@ public class Entity {
 	}
 	
 	public void render3D(ModelBatch batch, float delta) {
+	}
+	
+	public void onTouch(float delta) {
 	}
 	
 	public void destroy() {

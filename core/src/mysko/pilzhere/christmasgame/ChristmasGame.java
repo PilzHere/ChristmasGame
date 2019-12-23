@@ -4,6 +4,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 
@@ -22,17 +23,30 @@ public class ChristmasGame extends Game {
 	private AssetManager assMan;
 
 	@Override
-	public void create() {
+	public void create() {		
 		assMan = new AssetManager();
+		loadAssets();
+		
 		batch = new SpriteBatch();
 		mdlBatch = new ModelBatch();
 
 		setScreen(new GameScreen(this));
 	}
+	
+	private void loadAssets() {
+		assMan.load("island256.png", Texture.class);
+		assMan.load("tree01.png", Texture.class);
+		assMan.load("candyCane.png", Texture.class);
+		assMan.load("comet.png", Texture.class);
+		
+		if (!assMan.isFinished())
+			assMan.finishLoading();
+	}
 
 	@Override
 	public void render() {
 		Gdx.gl.glClearColor(48 / 255f, 96 / 255f, 130 / 255f, 1);
+//		Gdx.gl.glClearColor(0.25f, 0.5f, 0.75f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		getScreen().render(Gdx.graphics.getDeltaTime());

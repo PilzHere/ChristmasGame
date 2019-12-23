@@ -15,20 +15,20 @@ import com.badlogic.gdx.utils.Disposable;
 import mysko.pilzhere.christmasgame.screens.GameScreen;
 
 public class Island extends Entity implements Disposable {
-	private ModelBuilder builder;
+	private ModelBuilder mdlBuilder;
 
 	private Texture texture;
 	private Model mdl;
 	private ModelInstance mdlInstance;
-	private BoundingBox bb;
+	public BoundingBox bb;
 
 	public Island(GameScreen screen, Vector3 position) {
 		super(screen, position);
 
-		texture = new Texture("island256.png");
+		texture = screen.assMan.get("island256.png", Texture.class);
 
-		ModelBuilder mdlBuilder = new ModelBuilder();
-		mdl = mdlBuilder.createBox(100, 0, 100, new Material(TextureAttribute.createDiffuse(texture)), // 150
+		mdlBuilder = new ModelBuilder();
+		mdl = mdlBuilder.createBox(100, 0, 100, new Material(TextureAttribute.createDiffuse(texture)),
 				Usage.Position | Usage.TextureCoordinates);
 		mdlInstance = new ModelInstance(mdl);
 
@@ -51,7 +51,6 @@ public class Island extends Entity implements Disposable {
 	@Override
 	public void dispose() {
 		mdl.dispose();
-		texture.dispose();
 	}
 
 }
