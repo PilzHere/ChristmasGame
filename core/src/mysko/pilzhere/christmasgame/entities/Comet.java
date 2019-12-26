@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.Disposable;
 import mysko.pilzhere.christmasgame.Utils;
 import mysko.pilzhere.christmasgame.screens.GameScreen;
 
-public class Comet extends Entity implements IEntity, Disposable {
+public class Comet extends Entity implements IEntity {
 	private Texture texture;
 	private Sprite sprite;
 
@@ -20,7 +20,7 @@ public class Comet extends Entity implements IEntity, Disposable {
 	public Comet(GameScreen screen, Vector3 position) {
 		super(screen, position);
 
-		texture = screen.assMan.get("comet.png", Texture.class);
+		texture = screen.assMan.get("comet.png");
 		sprite = new Sprite(texture);
 		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
 
@@ -68,13 +68,16 @@ public class Comet extends Entity implements IEntity, Disposable {
 		
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
 
-		setSpritePosition();
-		setRectanglePosition();
+		setSpriteSize(sprite);
+		setSpritePosition(sprite);
+		setRectanglePosition(rect);
+		setRectangleSize(rect);
 
 		super.tick(delta);
 	}
 	
 	private void explode() {
+		screen.entities.add(new Player(screen, position.cpy()));
 		destroy = true;
 	}
 
@@ -94,19 +97,30 @@ public class Comet extends Entity implements IEntity, Disposable {
 	}
 
 	@Override
-	public void dispose() {
-
-	}
-
-	@Override
-	public void setSpritePosition() {
+	public void setSpritePosition(Sprite sprite) {
 		sprite.setX(screenPos.x - sprite.getWidth() / 2);
 		sprite.setY(screenPos.y - sprite.getHeight() / 2);
 	}
 
 	@Override
-	public void setRectanglePosition() {
+	public void setSpriteScale(Sprite sprite) {
+		Utils.setSpriteScale(sprite);
+	}
+
+	@Override
+	public void setRectanglePosition(Rectangle rect) {
 		rect.x = sprite.getX();
 		rect.y = sprite.getY();
+	}
+
+	@Override
+	public void setRectangleSize(Rectangle rect) {
+		rect.setWidth(sprite.getWidth() * sprite.getScaleX());
+		rect.setHeight(sprite.getHeight() * sprite.getScaleY());
+	}
+
+	@Override
+	public void setSpriteSize(Sprite sprite) {
+		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale, sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
 	}
 }

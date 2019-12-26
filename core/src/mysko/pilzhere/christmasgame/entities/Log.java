@@ -1,7 +1,5 @@
 package mysko.pilzhere.christmasgame.entities;
 
-import java.util.Random;
-
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -12,56 +10,43 @@ import com.badlogic.gdx.math.Vector3;
 import mysko.pilzhere.christmasgame.Utils;
 import mysko.pilzhere.christmasgame.screens.GameScreen;
 
-public class Tree extends Entity implements IEntity {
+public class Log extends Entity implements IEntity {
 	private Texture texture;
 	private Sprite sprite;
 
-	public Tree(GameScreen screen, Vector3 position) {
+	public Log(GameScreen screen, Vector3 position) {
 		super(screen, position);
-		shapeColor = Color.GREEN;
-
-		hp = 3;
 		
-		Random randomizer = new Random();
-		final boolean decorated = randomizer.nextBoolean();
-		if (decorated)
-			texture = screen.assMan.get("tree02.png");
-		else
-			texture = screen.assMan.get("tree01.png");
+		shapeColor = Color.BLUE;
 		
-		
+		texture = screen.assMan.get("logs.png");
 		sprite = new Sprite(texture);
 		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
 		
-
-		System.out.println("Tree added!");
+		System.out.println("Logs added!");
 	}
 
 	private final Vector3 projPos = new Vector3();
 	private final Vector3 screenPos = new Vector3();
-
+	
 	@Override
-	public void tick(float delta) {
-		if (hp <= 0) {
-			destroy = true;
-		}
-		
+	public void tick(float delta) {		
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
 		
-		setSpriteSize(sprite);		
-		setSpritePosition(sprite);		
+		setSpriteSize(sprite);
+		setSpritePosition(sprite);
 		setRectanglePosition(rect);
 		setRectangleSize(rect);
-
+		
 		super.tick(delta);
 	}
 
 	@Override
-	public void onChop(float delta) {
-		System.out.println("Tree touched!");
-		hp--;
+	public void onTouch(float delta) {
+		System.out.println("Logs touched!");
+		destroy = true;
 	}
-
+	
 	@Override
 	public void render2D(SpriteBatch batch, float delta) {
 		sprite.draw(batch);
@@ -69,8 +54,7 @@ public class Tree extends Entity implements IEntity {
 
 	@Override
 	public void destroy() {
-		System.err.println("Tree destroyed!");
-		screen.entities.add(new Log(screen, position.cpy()));
+		System.out.println("Logs taken.");
 	}
 
 	@Override
@@ -80,24 +64,24 @@ public class Tree extends Entity implements IEntity {
 	}
 
 	@Override
-	public void setRectanglePosition(Rectangle rect) {		
-		rect.setX(sprite.getX());
-		rect.setY(sprite.getY());
-	}
-
-	@Override
 	public void setSpriteScale(Sprite sprite) {
 		Utils.setSpriteScale(sprite);
 	}
 
 	@Override
-	public void setSpriteSize(Sprite sprite) {
-		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale, sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
+	public void setRectanglePosition(Rectangle rect) {
+		rect.x = sprite.getX() + sprite.getWidth() / 4;
+		rect.y = sprite.getY() + sprite.getHeight() / 4;
 	}
 
 	@Override
 	public void setRectangleSize(Rectangle rect) {
-		rect.setWidth(sprite.getWidth() * sprite.getScaleX());
-		rect.setHeight(sprite.getHeight() * sprite.getScaleY());
+		rect.setWidth(sprite.getWidth() / 2 * sprite.getScaleX());
+		rect.setHeight(sprite.getHeight() / 2 * sprite.getScaleY());
+	}
+
+	@Override
+	public void setSpriteSize(Sprite sprite) {
+		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale, sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
 	}
 }

@@ -21,6 +21,20 @@ public class ChristmasGame extends Game {
 	private SpriteBatch batch;
 	private ModelBatch mdlBatch;
 	private AssetManager assMan;
+	
+	public final int stdWindowWidth = 256;
+	public final int stdWindowHeight = 144;
+	public final float stdWindowScaleIncrement = 0.5f;
+	public float windowScale = 1f;
+	
+	public void setWindowScale(float windowScale) {
+		if (windowScale >= 1f) 
+			this.windowScale = windowScale;
+	}
+	
+	public float getWindowScale() {
+		return windowScale;
+	}
 
 	@Override
 	public void create() {		
@@ -36,8 +50,56 @@ public class ChristmasGame extends Game {
 	private void loadAssets() {
 		assMan.load("island256.png", Texture.class);
 		assMan.load("tree01.png", Texture.class);
+		assMan.load("tree02.png", Texture.class);
+		assMan.load("logs.png", Texture.class);
 		assMan.load("candyCane.png", Texture.class);
 		assMan.load("comet.png", Texture.class);
+		assMan.load("seaWave.png", Texture.class);
+		assMan.load("santaStandingDown.png", Texture.class);
+		assMan.load("santaStandingUp.png", Texture.class);
+		assMan.load("santaStandingLeft.png", Texture.class);
+		assMan.load("santaStandingRight.png", Texture.class);
+		assMan.load("santaWaterLeft.png", Texture.class);
+		assMan.load("yetiStandingDown.png", Texture.class);
+		assMan.load("yetiStandingUp.png", Texture.class);
+		assMan.load("yetiStandingLeft.png", Texture.class);
+		assMan.load("yetiStandingRight.png", Texture.class);
+		assMan.load("candy.png", Texture.class);
+		
+		assMan.load("santaWalkingDown1.png", Texture.class);
+		assMan.load("santaWalkingDown3.png", Texture.class);
+		assMan.load("santaWalkingUp1.png", Texture.class);
+		assMan.load("santaWalkingUp3.png", Texture.class);
+		
+		assMan.load("santaWalkingRight1.png", Texture.class);
+		assMan.load("santaWalkingRight2.png", Texture.class);
+		assMan.load("santaWalkingRight3.png", Texture.class);
+		assMan.load("santaWalkingRight4.png", Texture.class);
+		assMan.load("santaWalkingRight5.png", Texture.class);
+		assMan.load("santaWalkingRight6.png", Texture.class);
+		assMan.load("santaWalkingRight7.png", Texture.class);
+		assMan.load("santaWalkingRight8.png", Texture.class);
+		
+		assMan.load("yetiWalkingDown1.png", Texture.class);
+		assMan.load("yetiWalkingDown3.png", Texture.class);
+		assMan.load("yetiWalkingUp1.png", Texture.class);
+		assMan.load("yetiWalkingUp3.png", Texture.class);
+		
+		assMan.load("yetiWalkingRight1.png", Texture.class);
+		assMan.load("yetiWalkingRight2.png", Texture.class);
+		assMan.load("yetiWalkingRight3.png", Texture.class);
+		assMan.load("yetiWalkingRight4.png", Texture.class);
+		assMan.load("yetiWalkingRight5.png", Texture.class);
+		assMan.load("yetiWalkingRight6.png", Texture.class);
+		assMan.load("yetiWalkingRight7.png", Texture.class);
+		assMan.load("yetiWalkingRight8.png", Texture.class);
+		
+		assMan.load("santaChoppingDown1.png", Texture.class);
+		assMan.load("santaChoppingDown2.png", Texture.class);
+		assMan.load("santaChoppingUp1.png", Texture.class);
+		assMan.load("santaChoppingUp2.png", Texture.class);
+		assMan.load("santaChoppingRight1.png", Texture.class);
+		assMan.load("santaChoppingRight2.png", Texture.class);
 		
 		if (!assMan.isFinished())
 			assMan.finishLoading();

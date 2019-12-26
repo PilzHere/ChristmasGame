@@ -1,5 +1,7 @@
 package mysko.pilzhere.christmasgame;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 
 import mysko.pilzhere.christmasgame.screens.GameScreen;
@@ -21,6 +23,14 @@ public class Utils {
 //		Old projPos and ScreenPos for trees and candycanes etc...
 //		projPos.set(screen.viewport.project(position.cpy()));
 //		screenPos.set(projPos.x, projPos.y, 0);
+	}
+	
+	/**
+	 * Don't use this method!
+	 * @param sprite
+	 */
+	public static void setSpriteScale(Sprite sprite) {
+		sprite.setScale(Gdx.graphics.getWidth() / 1280f, Gdx.graphics.getHeight() / 720f);
 	}
 	
 }

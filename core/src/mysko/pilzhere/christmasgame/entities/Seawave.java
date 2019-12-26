@@ -1,8 +1,5 @@
 package mysko.pilzhere.christmasgame.entities;
 
-import java.util.Random;
-
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -12,29 +9,18 @@ import com.badlogic.gdx.math.Vector3;
 import mysko.pilzhere.christmasgame.Utils;
 import mysko.pilzhere.christmasgame.screens.GameScreen;
 
-public class Tree extends Entity implements IEntity {
+public class Seawave extends Entity implements IEntity {
 	private Texture texture;
 	private Sprite sprite;
 
-	public Tree(GameScreen screen, Vector3 position) {
+	public Seawave(GameScreen screen, Vector3 position) {
 		super(screen, position);
-		shapeColor = Color.GREEN;
 
-		hp = 3;
-		
-		Random randomizer = new Random();
-		final boolean decorated = randomizer.nextBoolean();
-		if (decorated)
-			texture = screen.assMan.get("tree02.png");
-		else
-			texture = screen.assMan.get("tree01.png");
-		
-		
+		texture = screen.assMan.get("seaWave.png", Texture.class);
 		sprite = new Sprite(texture);
-		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
-		
+//		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
 
-		System.out.println("Tree added!");
+		System.out.println("Seawave added!");
 	}
 
 	private final Vector3 projPos = new Vector3();
@@ -42,24 +28,19 @@ public class Tree extends Entity implements IEntity {
 
 	@Override
 	public void tick(float delta) {
-		if (hp <= 0) {
-			destroy = true;
-		}
-		
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
 		
 		setSpriteSize(sprite);		
 		setSpritePosition(sprite);		
-		setRectanglePosition(rect);
-		setRectangleSize(rect);
+//		setRectanglePosition(rect);
+//		setRectangleSize(rect);
 
 		super.tick(delta);
 	}
 
 	@Override
-	public void onChop(float delta) {
-		System.out.println("Tree touched!");
-		hp--;
+	public void onTouch(float delta) {
+		System.out.println("Seawave touched!");
 	}
 
 	@Override
@@ -69,8 +50,7 @@ public class Tree extends Entity implements IEntity {
 
 	@Override
 	public void destroy() {
-		System.err.println("Tree destroyed!");
-		screen.entities.add(new Log(screen, position.cpy()));
+
 	}
 
 	@Override

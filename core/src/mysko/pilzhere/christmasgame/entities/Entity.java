@@ -1,5 +1,6 @@
 package mysko.pilzhere.christmasgame.entities;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.math.Rectangle;
@@ -14,6 +15,8 @@ public class Entity {
 	public final Vector3 position;
 	public float distFromCam;
 	public Rectangle rect;
+	public int hp;
+	public Color shapeColor;
 	
 	public Entity(GameScreen screen, Vector3 position) {
 		this.screen = screen;
@@ -31,6 +34,9 @@ public class Entity {
 	}
 	
 	public void onTouch(float delta) {
+	}
+	
+	public void onChop(float delta) {
 	}
 	
 	public void destroy() {

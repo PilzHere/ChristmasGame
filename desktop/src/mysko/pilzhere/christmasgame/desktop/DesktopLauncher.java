@@ -15,8 +15,8 @@ public class DesktopLauncher {
 		config.title = "ChristmasGame";
 		config.fullscreen = false;
 		config.resizable = true;
-		config.width = 1280;
-		config.height = 720;
+		config.width = 256;
+		config.height = 144;
 		config.initialBackgroundColor = Color.WHITE;
 		config.samples = 0;
 		config.vSyncEnabled = false;
