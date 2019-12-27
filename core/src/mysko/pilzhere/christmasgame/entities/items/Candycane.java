@@ -21,6 +21,8 @@ public class Candycane extends Entity implements IEntity {
 		super(screen, position);
 		shapeColor = Color.GREEN;
 		
+		choppable = true;
+		
 		hp = 4;
 		
 		texture = screen.assMan.get("candyCane.png");

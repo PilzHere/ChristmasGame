@@ -1,8 +1,10 @@
 package mysko.pilzhere.christmasgame.entities;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
@@ -10,14 +12,31 @@ import mysko.pilzhere.christmasgame.Utils;
 import mysko.pilzhere.christmasgame.screens.GameScreen;
 
 public class Seawave extends Entity implements IEntity {
-	private Texture texture;
+	private Texture currentFrame;
 	private Sprite sprite;
+	
+	private final Texture texWave1, texWave2, texWave3;
+	private Animation<Texture> animWave;
+	private Texture[] waveFrames;
 
 	public Seawave(GameScreen screen, Vector3 position) {
 		super(screen, position);
 
-		texture = screen.assMan.get("seaWave.png", Texture.class);
-		sprite = new Sprite(texture);
+		texWave1 = screen.assMan.get("seaWave1.png");
+		texWave2 = screen.assMan.get("seaWave2.png");
+		texWave3 = screen.assMan.get("seaWave3.png");
+
+		waveFrames = new Texture[4];
+		waveFrames[0] = texWave1;
+		waveFrames[1] = texWave2;
+		waveFrames[2] = texWave3;
+		waveFrames[3] = texWave2;
+
+		float frameDur = MathUtils.random(0.35f, 0.55f);
+		animWave = new Animation<Texture>(frameDur, waveFrames);
+		
+//		texture = screen.assMan.get("seaWave.png", Texture.class);
+		sprite = new Sprite(waveFrames[0]);
 //		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
 
 		System.out.println("Seawave added!");
@@ -26,9 +45,15 @@ public class Seawave extends Entity implements IEntity {
 	private final Vector3 projPos = new Vector3();
 	private final Vector3 screenPos = new Vector3();
 
+	private float stateTime = 0f;
+	
 	@Override
 	public void tick(float delta) {
+		stateTime += delta;
+		
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
+		
+		sprite.setTexture(currentFrame = animWave.getKeyFrame(stateTime, true));
 		
 		setSpriteSize(sprite);		
 		setSpritePosition(sprite);		

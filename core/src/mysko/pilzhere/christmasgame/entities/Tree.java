@@ -20,6 +20,8 @@ public class Tree extends Entity implements IEntity {
 		super(screen, position);
 		shapeColor = Color.GREEN;
 
+		choppable = true;
+		
 		hp = 3;
 		
 		Random randomizer = new Random();

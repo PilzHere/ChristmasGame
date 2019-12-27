@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
 import mysko.pilzhere.christmasgame.Utils;
+import mysko.pilzhere.christmasgame.ai.AIStates;
 import mysko.pilzhere.christmasgame.entities.items.Candy;
 import mysko.pilzhere.christmasgame.screens.GameScreen;
 
@@ -44,14 +45,23 @@ public class Player extends Entity implements IEntity {
 	private Animation<Texture> animWalkRight;
 	private Texture[] walkRightFrames;
 
-	private final Texture textureWaterLeft;
+	private final Texture texWaterRight, texWaterUp, texWaterDown;
 
 	private final Sprite sprite;
 
 	public SpriteDirection spriteDir; // get-set
 
+	public int logsAmount; // get-set
+	public int candyAmount; // get-set
+
+	public PlayerTerrain action = PlayerTerrain.NORMAL; // get-set
+
+	public int hp; // get-set?
+
 	public Player(GameScreen screen, Vector3 position) {
 		super(screen, position);
+
+		hp = 5;
 
 		shapeColor = Color.ORANGE;
 
@@ -60,7 +70,9 @@ public class Player extends Entity implements IEntity {
 		texIdleLeft = screen.assMan.get("santaStandingLeft.png");
 		texIdleRight = screen.assMan.get("santaStandingRight.png");
 
-		textureWaterLeft = screen.assMan.get("santaWaterLeft.png");
+		texWaterRight = screen.assMan.get("santaWaterRight.png");
+		texWaterUp = screen.assMan.get("santaWaterUp.png");
+		texWaterDown = screen.assMan.get("santaWaterDown.png");
 
 		texWalkDown1 = screen.assMan.get("santaWalkingDown1.png");
 		texWalkDown3 = screen.assMan.get("santaWalkingDown3.png");
@@ -158,7 +170,15 @@ public class Player extends Entity implements IEntity {
 
 	@Override
 	public void tick(float delta) {
-			stateTime += delta;
+		stateTime += delta;
+
+		if (attackedTimerSet) {
+			currentTime = System.currentTimeMillis();
+			if (currentTime >= actualTimeToWait) {
+				flash = false;
+				attackedTimerSet = false;
+			}
+		}
 
 		if (position.x < -50) {
 			position.x = -50;
@@ -173,10 +193,63 @@ public class Player extends Entity implements IEntity {
 		}
 
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
+		currentColor = screen.getIsland().readPixels(position.cpy());
 
-		if (chopping) {
+		if (currentColor == shallowWater || currentColor == deepWater || currentColor == 0) {
+			action = PlayerTerrain.SWIMMING;
+		} else {
+			action = PlayerTerrain.NORMAL;
+		}
+
+		if (action == PlayerTerrain.NORMAL) {
+			if (controlledMovement && !isChopping) {
+				movementSpeed = walkSpeed;
+
+				switch (spriteDir) {
+				case DOWN:
+					currentanAnimation = animWalkDown;
+					sprite.setFlip(false, false);
+					break;
+				case UP:
+					currentanAnimation = animWalkUp;
+					sprite.setFlip(false, false);
+					break;
+				case LEFT:
+					currentanAnimation = animWalkRight;
+					sprite.setFlip(true, false);
+					break;
+				case RIGHT:
+					currentanAnimation = animWalkRight;
+					sprite.setFlip(false, false);
+					break;
+				}
+
+				sprite.setTexture(currentFrame = currentanAnimation.getKeyFrame(stateTime, true));
+
+			} else {
+				if (spriteDir == SpriteDirection.UP) {
+					currentFrame = texIdleUp;
+
+					sprite.setFlip(false, false);
+				} else if (spriteDir == SpriteDirection.DOWN) {
+					currentFrame = texIdleDown;
+					sprite.setFlip(false, false);
+				} else if (spriteDir == SpriteDirection.LEFT) {
+					currentFrame = texIdleLeft;
+					sprite.setFlip(false, false);
+				} else if (spriteDir == SpriteDirection.RIGHT) {
+					currentFrame = texIdleRight;
+					sprite.setFlip(false, false);
+				}
+
+				sprite.setTexture(currentFrame);
+			}
+		}
+
+		if (isChopping) {
 			if (currentanAnimation.isAnimationFinished(stateTime)) {
-				chopping = false;
+				action = PlayerTerrain.NORMAL;
+				isChopping = false;
 			}
 
 			switch (spriteDir) {
@@ -201,74 +274,38 @@ public class Player extends Entity implements IEntity {
 				sprite.setFlip(false, false);
 				break;
 			}
-		} else {
-			currentColor = screen.getIsland().readPixels(position.cpy());
-			if (controlledMovement) {
-				if (currentColor == shallowWater || currentColor == deepWater || currentColor == 0) {
-					movementSpeed = swimSpeed;
+		}
 
-					switch (spriteDir) {
-					case DOWN:
-						if (sprite.getTexture() != textureWaterLeft)
-							sprite.setTexture(textureWaterLeft);
-						break;
-					case UP:
-						if (sprite.getTexture() != textureWaterLeft)
-							sprite.setTexture(textureWaterLeft);
-						break;
-					case LEFT:
-						if (sprite.getTexture() != textureWaterLeft)
-							sprite.setTexture(textureWaterLeft);
-						break;
-					case RIGHT:
-						if (sprite.getTexture() != textureWaterLeft)
-							sprite.setTexture(textureWaterLeft);
-						break;
-					}
-				} else {
-					movementSpeed = walkSpeed;
+		if (action == PlayerTerrain.SWIMMING) {
+			movementSpeed = swimSpeed;
 
-					switch (spriteDir) {
-					case DOWN:
-						currentanAnimation = animWalkDown;
-						sprite.setTexture(currentFrame = currentanAnimation.getKeyFrame(stateTime, true));
-						sprite.setFlip(false, false);
-						break;
-					case UP:
-						currentanAnimation = animWalkUp;
-						sprite.setTexture(currentFrame = currentanAnimation.getKeyFrame(stateTime, true));
-						sprite.setFlip(false, false);
-						break;
-					case LEFT:
-						currentanAnimation = animWalkRight;
-						sprite.setTexture(currentFrame = currentanAnimation.getKeyFrame(stateTime, true));
-						sprite.setFlip(true, false);
-						break;
-					case RIGHT:
-						currentanAnimation = animWalkRight;
-						sprite.setTexture(currentFrame = currentanAnimation.getKeyFrame(stateTime, true));
-						sprite.setFlip(false, false);
-						break;
-					}
-				}
-			} else {
-				if (spriteDir == SpriteDirection.UP) {
-					currentFrame = texIdleUp;
-					sprite.setTexture(currentFrame);
-					sprite.setFlip(false, false);
-				} else if (spriteDir == SpriteDirection.DOWN) {
-					currentFrame = texIdleDown;
-					sprite.setTexture(currentFrame);
-					sprite.setFlip(false, false);
-				} else if (spriteDir == SpriteDirection.LEFT) {
-					currentFrame = texIdleLeft;
-					sprite.setTexture(currentFrame);
-					sprite.setFlip(false, false);
-				} else if (spriteDir == SpriteDirection.RIGHT) {
-					currentFrame = texIdleRight;
-					sprite.setTexture(currentFrame);
+			switch (spriteDir) {
+			case DOWN:
+				if (sprite.getTexture() != texWaterDown) {
+					sprite.setTexture(texWaterDown);
 					sprite.setFlip(false, false);
 				}
+
+				break;
+			case UP:
+				if (sprite.getTexture() != texWaterUp) {
+					sprite.setTexture(texWaterUp);
+					sprite.setFlip(false, false);
+				}
+
+				break;
+			case LEFT:
+				if (sprite.getTexture() != texWaterRight) {
+					sprite.setTexture(texWaterRight);
+					sprite.setFlip(true, false);
+				}
+				break;
+			case RIGHT:
+				if (sprite.getTexture() != texWaterRight) {
+					sprite.setTexture(texWaterRight);
+					sprite.setFlip(false, false);
+				}
+				break;
 			}
 		}
 
@@ -299,6 +336,22 @@ public class Player extends Entity implements IEntity {
 		}
 	}
 
+	private boolean attackedTimerSet;
+	private long actualTimeToWait;
+	private long timeToWait = 1L;
+	private long currentTime;
+
+	private boolean flash;
+
+	public void attacked() {
+		if (!attackedTimerSet) {			
+			actualTimeToWait = System.currentTimeMillis() + (timeToWait * 1000L);
+			hp--;
+			flash = true;
+			attackedTimerSet = true;
+		}
+	}
+
 	private boolean controlledMovement;
 
 	public void moveLeft(float delta) {
@@ -325,10 +378,10 @@ public class Player extends Entity implements IEntity {
 		controlledMovement = true;
 	}
 
-	public boolean chopping; // get-set
+	public boolean isChopping; // get-set
 
 	public void chop(float delta) {
-		chopping = true;
+		isChopping = true;
 		stateTime = 0;
 	}
 
@@ -337,9 +390,32 @@ public class Player extends Entity implements IEntity {
 		System.out.println("Santa touched!");
 	}
 
+	private boolean flashTimerSet;
+	private long actualFlashTimeToWait;
+	private boolean drawSprite = true;
+
 	@Override
 	public void render2D(SpriteBatch batch, float delta) {
-		sprite.draw(batch);
+		flash();
+		
+		if (drawSprite)
+			sprite.draw(batch);
+	}
+	
+	private void flash() {
+		if (flash) {
+			if (!flashTimerSet) {
+				actualFlashTimeToWait = currentTime + 33L;
+				flashTimerSet = true;
+			} else {
+				if (currentTime >= actualFlashTimeToWait) {
+					drawSprite = !drawSprite;
+					flashTimerSet = false;
+				}
+			}
+		} else {
+			drawSprite = true;
+		}
 	}
 
 	@Override
@@ -355,8 +431,8 @@ public class Player extends Entity implements IEntity {
 
 	@Override
 	public void setRectanglePosition(Rectangle rect) {
-		rect.setX(sprite.getX());
-		rect.setY(sprite.getY());
+		rect.setX(sprite.getX() + sprite.getWidth() / 4);
+		rect.setY(sprite.getY() + sprite.getHeight() / 4);
 	}
 
 	@Override
@@ -372,7 +448,7 @@ public class Player extends Entity implements IEntity {
 
 	@Override
 	public void setRectangleSize(Rectangle rect) {
-		rect.setWidth(sprite.getWidth() * sprite.getScaleX());
-		rect.setHeight(sprite.getHeight() * sprite.getScaleY());
+		rect.setWidth(sprite.getWidth() / 2 * sprite.getScaleX());
+		rect.setHeight(sprite.getHeight() / 2 * sprite.getScaleY());
 	}
 }

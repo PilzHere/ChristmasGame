@@ -45,6 +45,7 @@ public class Yeti extends Entity implements IEntity {
 		
 		shapeColor = Color.RED;
 		
+		choppable = true;
 		hp = 5;
 
 		texIdleDown = screen.assMan.get("yetiStandingDown.png");
@@ -126,7 +127,9 @@ public class Yeti extends Entity implements IEntity {
 
 	float diffScreenPosX = oldScreenPosX - screenPos.x;
 	float diffScreenPosY = oldScreenPosY - screenPos.y;
-
+	
+	public boolean attack; // get-set
+	
 	@Override
 	public void tick(float delta) {
 		if (hp <= 0) {
@@ -140,6 +143,11 @@ public class Yeti extends Entity implements IEntity {
 
 		ai.player = screen.getPlayer();
 		ai.tick(delta);
+		
+		if (attack) {
+			screen.getPlayer().attacked();
+			attack = false;
+		}
 
 		if (position.x < -50) {
 			position.x = -50;
@@ -255,7 +263,7 @@ public class Yeti extends Entity implements IEntity {
 	@Override
 	public void setRectanglePosition(Rectangle rect) {
 		rect.setX(sprite.getX() + sprite.getWidth() / 4);
-		rect.setY(sprite.getY() + sprite.getHeight() / 4);
+		rect.setY(sprite.getY() + sprite.getHeight() / 8);
 	}
 
 	@Override
@@ -272,6 +280,6 @@ public class Yeti extends Entity implements IEntity {
 	@Override
 	public void setRectangleSize(Rectangle rect) {
 		rect.setWidth(sprite.getWidth() / 2 * sprite.getScaleX());
-		rect.setHeight(sprite.getHeight() / 2 * sprite.getScaleY());
+		rect.setHeight(sprite.getHeight() * sprite.getScaleY());
 	}
 }

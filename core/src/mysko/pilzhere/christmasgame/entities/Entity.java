@@ -18,6 +18,8 @@ public class Entity {
 	public int hp;
 	public Color shapeColor;
 	
+	public boolean choppable = false; // get-set
+	
 	public Entity(GameScreen screen, Vector3 position) {
 		this.screen = screen;
 		this.position = position;

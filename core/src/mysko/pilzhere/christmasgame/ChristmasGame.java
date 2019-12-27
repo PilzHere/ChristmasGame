@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 
@@ -54,17 +55,26 @@ public class ChristmasGame extends Game {
 		assMan.load("logs.png", Texture.class);
 		assMan.load("candyCane.png", Texture.class);
 		assMan.load("comet.png", Texture.class);
-		assMan.load("seaWave.png", Texture.class);
+		assMan.load("seaWave1.png", Texture.class);
+		assMan.load("seaWave2.png", Texture.class);
+		assMan.load("seaWave3.png", Texture.class);
 		assMan.load("santaStandingDown.png", Texture.class);
 		assMan.load("santaStandingUp.png", Texture.class);
 		assMan.load("santaStandingLeft.png", Texture.class);
 		assMan.load("santaStandingRight.png", Texture.class);
-		assMan.load("santaWaterLeft.png", Texture.class);
+		assMan.load("santaWaterUp.png", Texture.class);
+		assMan.load("santaWaterDown.png", Texture.class);
+		assMan.load("santaWaterRight.png", Texture.class);
 		assMan.load("yetiStandingDown.png", Texture.class);
 		assMan.load("yetiStandingUp.png", Texture.class);
 		assMan.load("yetiStandingLeft.png", Texture.class);
 		assMan.load("yetiStandingRight.png", Texture.class);
 		assMan.load("candy.png", Texture.class);
+		assMan.load("slade.png", Texture.class);
+		assMan.load("sladeBroken.png", Texture.class);
+		assMan.load("heartEmpty.png", Texture.class);
+		assMan.load("heartHalf1.png", Texture.class);
+		assMan.load("heartHalf2.png", Texture.class);
 		
 		assMan.load("santaWalkingDown1.png", Texture.class);
 		assMan.load("santaWalkingDown3.png", Texture.class);
@@ -101,12 +111,17 @@ public class ChristmasGame extends Game {
 		assMan.load("santaChoppingRight1.png", Texture.class);
 		assMan.load("santaChoppingRight2.png", Texture.class);
 		
+		assMan.load("fonts/font01_32.fnt", BitmapFont.class);
+		assMan.load("fonts/font01_16.fnt", BitmapFont.class);
+		
 		if (!assMan.isFinished())
 			assMan.finishLoading();
 	}
 
 	@Override
 	public void render() {
+		Gdx.graphics.setTitle("ChristmasGame " + Gdx.graphics.getWidth() + " * " + Gdx.graphics.getHeight());
+		
 		Gdx.gl.glClearColor(48 / 255f, 96 / 255f, 130 / 255f, 1);
 //		Gdx.gl.glClearColor(0.25f, 0.5f, 0.75f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);

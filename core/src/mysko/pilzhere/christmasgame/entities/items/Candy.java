@@ -46,6 +46,7 @@ public class Candy extends Entity implements IEntity {
 	@Override
 	public void onTouch(float delta) {
 		System.out.println("Candy touched!");
+		screen.getPlayer().candyAmount++;
 		destroy = true;
 	}
 	
