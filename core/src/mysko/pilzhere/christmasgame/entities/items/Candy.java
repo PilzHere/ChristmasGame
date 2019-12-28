@@ -18,38 +18,41 @@ public class Candy extends Entity implements IEntity {
 
 	public Candy(GameScreen screen, Vector3 position) {
 		super(screen, position);
-		
+
 		shapeColor = Color.YELLOW;
-		
+
 		texture = screen.assMan.get("candy.png");
 		sprite = new Sprite(texture);
 		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
-		
+
 		System.out.println("Candy added!");
 	}
 
 	private final Vector3 projPos = new Vector3();
 	private final Vector3 screenPos = new Vector3();
-	
+
 	@Override
-	public void tick(float delta) {		
+	public void tick(float delta) {
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
-		
+
 		setSpriteSize(sprite);
 		setSpritePosition(sprite);
 		setRectanglePosition(rect);
 		setRectangleSize(rect);
-		
+
 		super.tick(delta);
 	}
 
 	@Override
 	public void onTouch(float delta) {
 		System.out.println("Candy touched!");
+		screen.audio.sfxAccept.play(screen.game.volume);
 		screen.getPlayer().candyAmount++;
+		if (screen.getPlayer().hp < 5)
+			screen.getPlayer().hp++;
 		destroy = true;
 	}
-	
+
 	@Override
 	public void render2D(SpriteBatch batch, float delta) {
 		sprite.draw(batch);
@@ -85,6 +88,7 @@ public class Candy extends Entity implements IEntity {
 
 	@Override
 	public void setSpriteSize(Sprite sprite) {
-		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale, sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
+		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale,
+				sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
 	}
 }

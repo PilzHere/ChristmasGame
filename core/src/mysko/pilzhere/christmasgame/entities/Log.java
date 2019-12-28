@@ -16,38 +16,39 @@ public class Log extends Entity implements IEntity {
 
 	public Log(GameScreen screen, Vector3 position) {
 		super(screen, position);
-		
+
 		shapeColor = Color.BLUE;
-		
+
 		texture = screen.assMan.get("logs.png");
 		sprite = new Sprite(texture);
 		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
-		
+
 		System.out.println("Logs added!");
 	}
 
 	private final Vector3 projPos = new Vector3();
 	private final Vector3 screenPos = new Vector3();
-	
+
 	@Override
-	public void tick(float delta) {		
+	public void tick(float delta) {
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
-		
+
 		setSpriteSize(sprite);
 		setSpritePosition(sprite);
 		setRectanglePosition(rect);
 		setRectangleSize(rect);
-		
+
 		super.tick(delta);
 	}
 
 	@Override
 	public void onTouch(float delta) {
 		System.out.println("Logs taken!");
+		screen.audio.sfxPickup.play(screen.game.volume);
 		screen.getPlayer().logsAmount++;
 		destroy = true;
 	}
-	
+
 	@Override
 	public void render2D(SpriteBatch batch, float delta) {
 		sprite.draw(batch);
@@ -83,6 +84,7 @@ public class Log extends Entity implements IEntity {
 
 	@Override
 	public void setSpriteSize(Sprite sprite) {
-		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale, sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
+		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale,
+				sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
 	}
 }

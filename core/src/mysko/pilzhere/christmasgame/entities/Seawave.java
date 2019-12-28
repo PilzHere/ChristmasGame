@@ -14,7 +14,7 @@ import mysko.pilzhere.christmasgame.screens.GameScreen;
 public class Seawave extends Entity implements IEntity {
 	private Texture currentFrame;
 	private Sprite sprite;
-	
+
 	private final Texture texWave1, texWave2, texWave3;
 	private Animation<Texture> animWave;
 	private Texture[] waveFrames;
@@ -34,10 +34,8 @@ public class Seawave extends Entity implements IEntity {
 
 		float frameDur = MathUtils.random(0.35f, 0.55f);
 		animWave = new Animation<Texture>(frameDur, waveFrames);
-		
-//		texture = screen.assMan.get("seaWave.png", Texture.class);
+
 		sprite = new Sprite(waveFrames[0]);
-//		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
 
 		System.out.println("Seawave added!");
 	}
@@ -46,17 +44,17 @@ public class Seawave extends Entity implements IEntity {
 	private final Vector3 screenPos = new Vector3();
 
 	private float stateTime = 0f;
-	
+
 	@Override
 	public void tick(float delta) {
 		stateTime += delta;
-		
+
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
-		
+
 		sprite.setTexture(currentFrame = animWave.getKeyFrame(stateTime, true));
-		
-		setSpriteSize(sprite);		
-		setSpritePosition(sprite);		
+
+		setSpriteSize(sprite);
+		setSpritePosition(sprite);
 //		setRectanglePosition(rect);
 //		setRectangleSize(rect);
 
@@ -85,7 +83,7 @@ public class Seawave extends Entity implements IEntity {
 	}
 
 	@Override
-	public void setRectanglePosition(Rectangle rect) {		
+	public void setRectanglePosition(Rectangle rect) {
 		rect.setX(sprite.getX());
 		rect.setY(sprite.getY());
 	}
@@ -97,7 +95,8 @@ public class Seawave extends Entity implements IEntity {
 
 	@Override
 	public void setSpriteSize(Sprite sprite) {
-		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale, sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
+		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale,
+				sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
 import mysko.pilzhere.christmasgame.Utils;
+import mysko.pilzhere.christmasgame.ai.AIStates;
 import mysko.pilzhere.christmasgame.ai.YetiAI;
 import mysko.pilzhere.christmasgame.entities.Entity;
 import mysko.pilzhere.christmasgame.entities.IEntity;
@@ -42,9 +43,9 @@ public class Yeti extends Entity implements IEntity {
 
 	public Yeti(GameScreen screen, Vector3 position) {
 		super(screen, position);
-		
+
 		shapeColor = Color.RED;
-		
+
 		choppable = true;
 		hp = 5;
 
@@ -119,31 +120,40 @@ public class Yeti extends Entity implements IEntity {
 	public final float swimSpeed = 6f;
 	public final float boredSpeed = 2f;
 
-	private final int deepWater = 811631359;
-	private final int shallowWater = 1533993471;
-	private int currentColor;
-
 	private float stateTime = 0f;
 
 	float diffScreenPosX = oldScreenPosX - screenPos.x;
 	float diffScreenPosY = oldScreenPosY - screenPos.y;
-	
+
 	public boolean attack; // get-set
+
+	public boolean aggroSfxPlayed;
+
+	private long currentTime;
 	
+	public void playAggroSfx() {
+		if (!aggroSfxPlayed) {
+			screen.audio.sfxAggro.play(screen.game.volume);
+			aggroSfxPlayed = true;
+		}
+	}
+
 	@Override
 	public void tick(float delta) {
+		ai.player = screen.getPlayer();
+		
 		if (hp <= 0) {
 			destroy = true;
 		}
-		
+
 		stateTime += delta;
 
 		oldScreenPosX = screenPos.x;
 		oldScreenPosY = screenPos.y;
-
-		ai.player = screen.getPlayer();
-		ai.tick(delta);
 		
+		if (!screen.gameIsPaused)
+			ai.tick(delta);
+
 		if (attack) {
 			screen.getPlayer().attacked();
 			attack = false;
@@ -165,7 +175,7 @@ public class Yeti extends Entity implements IEntity {
 
 		diffScreenPosX = oldScreenPosX - screenPos.x;
 		diffScreenPosY = oldScreenPosY - screenPos.y;
-		
+
 		if (Math.abs(diffScreenPosX) > 0.1f && Math.abs(diffScreenPosY) > 0.1f) {
 			if (Math.abs(diffScreenPosX) > Math.abs(diffScreenPosY)) {
 				if (diffScreenPosX < 0) {
@@ -181,31 +191,6 @@ public class Yeti extends Entity implements IEntity {
 				}
 			}
 		}
-		
-//		if (oldScreenPosX == screenPos.x && oldScreenPosY == screenPos.y) { // could work, wrong math!
-//			switch (spriteDir) {
-//			case UP:
-//				currentFrame = texIdleUp;
-//				sprite.setTexture(currentFrame);
-//				sprite.setFlip(false, false);
-//				break;
-//			case DOWN:
-//				currentFrame = texIdleDown;
-//				sprite.setTexture(currentFrame);
-//				sprite.setFlip(false, false);
-//				break;
-//			case LEFT:
-//				currentFrame = texIdleLeft;
-//				sprite.setTexture(currentFrame);
-//				sprite.setFlip(false, false);
-//				break;
-//			case RIGHT:
-//				currentFrame = texIdleRight;
-//				sprite.setTexture(currentFrame);
-//				sprite.setFlip(false, false);
-//				break;
-//			}
-//		}
 
 		switch (spriteDir) {
 		case DOWN:
@@ -238,15 +223,61 @@ public class Yeti extends Entity implements IEntity {
 		super.tick(delta);
 	}
 
+	private boolean drawSprite = true;
+	public boolean flash; //getset
+	
 	@Override
 	public void onChop(float delta) {
 		System.out.println("Yeti touched!");
-		hp--;
+		if (!flash) {
+			screen.audio.sfxYetiHurt.play(screen.game.volume);
+			hp--;
+			ai.state = AIStates.WAIT;
+			flash = true;	
+		}
 	}
-
+	
+	private boolean flashTimerSet;
+	private long actualFlashTimeToWait;
+	
+	private void flash() {		
+		if (flash) {
+			currentTime = System.currentTimeMillis();
+			if (!flashTimerSet) {
+				actualFlashTimeToWait = currentTime + 33L;
+				flashTimerSet = true;
+			} else {
+				if (currentTime >= actualFlashTimeToWait) {
+					drawSprite = !drawSprite;
+					flashTimerSet = false;
+				}
+			}
+		} else {
+			drawSprite = true;
+		}
+	}
+	
 	@Override
 	public void render2D(SpriteBatch batch, float delta) {
-		sprite.draw(batch);
+		flash();
+		
+		switch (hp) {
+		case 4:
+			sprite.setColor(new Color(1, 0.75f, 0.75f, 1));
+			break;
+		case 3:
+			sprite.setColor(new Color(1, 0.50f, 0.50f, 1));
+			break;
+		case 2:
+			sprite.setColor(new Color(1, 0.25f, 0.25f, 1));
+			break;
+		case 1:
+			sprite.setColor(new Color(1, 0.10f, 0.10f, 1));
+			break;
+		}
+
+		if (drawSprite)
+			sprite.draw(batch);
 	}
 
 	@Override

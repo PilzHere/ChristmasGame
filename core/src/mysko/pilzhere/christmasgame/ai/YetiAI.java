@@ -2,14 +2,14 @@ package mysko.pilzhere.christmasgame.ai;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.TimeUtils;
 
 import mysko.pilzhere.christmasgame.entities.Player;
+import mysko.pilzhere.christmasgame.entities.PlayerTerrain;
 import mysko.pilzhere.christmasgame.entities.enemies.Yeti;
 
 public class YetiAI {
 	private final Yeti yeti;
-	private AIStates state;
+	public AIStates state;
 	public Player player;
 
 	public YetiAI(Yeti yeti) {
@@ -18,14 +18,19 @@ public class YetiAI {
 	}
 
 	private float distFromPlayer;
-	private final float minDistFromPlayer = 3f;
+	private float distFromTargetPos;
+	private final float minDistFromPlayer = 1f;
 	private final float detectionDistFromPlayer = 15f;
 	private final Vector3 direction = new Vector3();
-	
+
 	private boolean waitTimerSet;
 	private long actualTimeToWait;
 	private long timeToWait = 1;
-	private long currentTime;	
+	private long currentTime;
+
+	private boolean boredTargetSet;
+
+	private final Vector3 targetPos = new Vector3();
 
 	public void tick(float delta) {
 		if (player != null) {
@@ -35,82 +40,122 @@ public class YetiAI {
 
 		switch (state) {
 		case IDLE:
+//			System.err.println("IDLE");
+			yeti.aggroSfxPlayed = false;
+
 			waitTimerSet = false;
-			
+
 			yeti.movementSpeed = yeti.walkSpeed;
 
 			if (player != null) {
 				if (distFromPlayer < detectionDistFromPlayer)
 					state = AIStates.CHASING_PLAYER;
+				else
+					state = AIStates.BORED;
 			} else {
 				state = AIStates.BORED;
 			}
 			break;
 		case BORED:
+//			System.err.println("BORED");
+
 			yeti.movementSpeed = yeti.boredSpeed;
 
 			if (player != null) {
 				if (distFromPlayer < detectionDistFromPlayer) {
+					boredTargetSet = false;
 					state = AIStates.CHASING_PLAYER;
 				} else {
+					if (!boredTargetSet) {
+						targetPos.set(MathUtils.random(-35f, 35f), 0, MathUtils.random(-35f, 35f));
+						boredTargetSet = true;
+					} else {
+						direction.x = (targetPos.x - yeti.position.x);
+						direction.y = 0;
+						direction.z = (targetPos.z - yeti.position.z);
 
-					direction.x = (yeti.position.x + MathUtils.random(-5f, 5f) - yeti.position.x);
+						direction.nor().scl(yeti.movementSpeed * delta);
+
+						yeti.position.add(direction.cpy());
+
+						distFromTargetPos = Vector3.dst(yeti.position.x, yeti.position.y, yeti.position.z, targetPos.x,
+								targetPos.y, targetPos.z);
+
+						if (distFromTargetPos < 1) {
+							boredTargetSet = false;
+						}
+					}
+				}
+			} else {
+				if (!boredTargetSet) {
+					targetPos.set(MathUtils.random(-35f, 35f), 0, MathUtils.random(-35f, 35f));
+					boredTargetSet = true;
+				} else {
+					direction.x = (targetPos.x - yeti.position.x);
 					direction.y = 0;
-					direction.z = (yeti.position.z + MathUtils.random(-5f, 5f) - yeti.position.z);
+					direction.z = (targetPos.z - yeti.position.z);
 
 					direction.nor().scl(yeti.movementSpeed * delta);
 
 					yeti.position.add(direction.cpy());
+
+					distFromTargetPos = Vector3.dst(yeti.position.x, yeti.position.y, yeti.position.z, targetPos.x,
+							targetPos.y, targetPos.z);
+
+					if (distFromTargetPos < 1) {
+						boredTargetSet = false;
+					}
 				}
-			} else {
-				direction.x = (yeti.position.x + MathUtils.random(-5f, 5f) - yeti.position.x);
-				direction.y = 0;
-				direction.z = (yeti.position.z + MathUtils.random(-5f, 5f) - yeti.position.z);
-
-				direction.nor().scl(yeti.movementSpeed * delta);
-
-				yeti.position.add(direction.cpy());
 			}
 			break;
 		case CHASING_PLAYER:
+//			System.err.println("CHASING");
 			yeti.movementSpeed = yeti.runSpeed;
-
+			
 			if (player != null) {
-				direction.x = (player.position.x - yeti.position.x);
-				direction.y = 0;
-				direction.z = (player.position.z - yeti.position.z);
+				if (player.action == PlayerTerrain.SWIMMING) {
+					state = AIStates.WAIT;
+				} else {
+					yeti.playAggroSfx();
 
-				direction.nor().scl(yeti.movementSpeed * delta);
+					direction.x = (player.position.x - yeti.position.x);
+					direction.y = 0;
+					direction.z = (player.position.z - yeti.position.z);
 
-				if (distFromPlayer > minDistFromPlayer)
-					yeti.position.add(direction.cpy());
-				
-				if (distFromPlayer < minDistFromPlayer)
-					state = AIStates.ATTACK;
+					direction.nor().scl(yeti.movementSpeed * delta);
 
-				if (distFromPlayer > detectionDistFromPlayer)
-					state = AIStates.IDLE;
+					if (distFromPlayer > minDistFromPlayer)
+						yeti.position.add(direction.cpy());
+
+					if (distFromPlayer < minDistFromPlayer)
+						state = AIStates.ATTACK;
+
+					if (distFromPlayer > detectionDistFromPlayer)
+						state = AIStates.IDLE;
+				}
 			}
 			break;
 		case ATTACK:
+//			System.err.println("ATTACK");
 			yeti.attack = true;
 			state = AIStates.WAIT;
 			break;
 		case WAIT:
+//			System.err.println("WAIT");
 			if (!waitTimerSet) {
 				actualTimeToWait = System.currentTimeMillis() + (timeToWait * 1500L); // 1000
 				waitTimerSet = true;
 			} else {
 				currentTime = System.currentTimeMillis();
 				if (currentTime >= actualTimeToWait) {
+					yeti.flash = false;
 					state = AIStates.IDLE;
 				}
 			}
-				
-				
 			break;
 		case DEAD:
-
+//			System.err.println("DEAD");
+			state = AIStates.IDLE;
 			break;
 		}
 	}

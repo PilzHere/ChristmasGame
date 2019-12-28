@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Disposable;
 
 import mysko.pilzhere.christmasgame.Utils;
 import mysko.pilzhere.christmasgame.entities.Entity;
@@ -20,43 +19,44 @@ public class Candycane extends Entity implements IEntity {
 	public Candycane(GameScreen screen, Vector3 position) {
 		super(screen, position);
 		shapeColor = Color.GREEN;
-		
+
 		choppable = true;
-		
+
 		hp = 4;
-		
+
 		texture = screen.assMan.get("candyCane.png");
 		sprite = new Sprite(texture);
 		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
-		
+
 		System.out.println("Candycane added!");
 	}
 
 	private final Vector3 projPos = new Vector3();
 	private final Vector3 screenPos = new Vector3();
-	
+
 	@Override
 	public void tick(float delta) {
 		if (hp <= 0) {
 			destroy = true;
 		}
-		
+
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
-		
+
 		setSpriteSize(sprite);
 		setSpritePosition(sprite);
 		setRectanglePosition(rect);
 		setRectangleSize(rect);
-		
+
 		super.tick(delta);
 	}
 
 	@Override
 	public void onChop(float delta) {
 		System.out.println("Candycane touched!");
+		screen.audio.sfxChoose.play(screen.game.volume);
 		hp--;
 	}
-	
+
 	@Override
 	public void render2D(SpriteBatch batch, float delta) {
 		sprite.draw(batch);
@@ -65,6 +65,7 @@ public class Candycane extends Entity implements IEntity {
 	@Override
 	public void destroy() {
 		System.out.println("Candycone destroyed!");
+		screen.audio.sfxTreeDisapear.play(screen.game.volume);
 		screen.entities.add(new Candy(screen, position.cpy()));
 	}
 
@@ -93,6 +94,7 @@ public class Candycane extends Entity implements IEntity {
 
 	@Override
 	public void setSpriteSize(Sprite sprite) {
-		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale, sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
+		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale,
+				sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
 	}
 }

@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
 import mysko.pilzhere.christmasgame.Utils;
-import mysko.pilzhere.christmasgame.ai.AIStates;
+import mysko.pilzhere.christmasgame.entities.enemies.Shark;
 import mysko.pilzhere.christmasgame.entities.items.Candy;
 import mysko.pilzhere.christmasgame.screens.GameScreen;
 
@@ -47,7 +47,7 @@ public class Player extends Entity implements IEntity {
 
 	private final Texture texWaterRight, texWaterUp, texWaterDown;
 
-	private final Sprite sprite;
+	public final Sprite sprite; // get
 
 	public SpriteDirection spriteDir; // get-set
 
@@ -168,8 +168,17 @@ public class Player extends Entity implements IEntity {
 
 	private float stateTime = 0f;
 
+	private boolean sharkSpawnTimerSet;
+	private final long sharkSpawnTimer = 4L;
+	private long sharkSpawnTime;
+
 	@Override
 	public void tick(float delta) {
+		if (hp == 0) {
+			screen.gameOver();
+			destroy = true;
+		}
+
 		stateTime += delta;
 
 		if (attackedTimerSet) {
@@ -197,8 +206,24 @@ public class Player extends Entity implements IEntity {
 
 		if (currentColor == shallowWater || currentColor == deepWater || currentColor == 0) {
 			action = PlayerTerrain.SWIMMING;
+
+			if (screen.shark == null) {
+				if (!sharkSpawnTimerSet) {
+					sharkSpawnTime = System.currentTimeMillis() + sharkSpawnTimer * 1000L;
+					sharkSpawnTimerSet = true;
+				} else {
+					if (System.currentTimeMillis() >= sharkSpawnTime) {
+						if (screen.shark == null)
+							screen.shark = new Shark(screen, screen.getClosestSharkSpawnPoint());
+						screen.entities.add(screen.shark);
+						sharkSpawnTimerSet = false;
+					}
+				}
+			}
+
 		} else {
 			action = PlayerTerrain.NORMAL;
+			sharkSpawnTimerSet = false;
 		}
 
 		if (action == PlayerTerrain.NORMAL) {
@@ -320,16 +345,15 @@ public class Player extends Entity implements IEntity {
 	}
 
 	public void checkForOverlaps(float delta) {
-//		Object overlapingObj = null;
 		for (Entity ent : screen.entities) {
 			if (ent.rect != null) {
 				if (rect.overlaps(ent.rect)) {
-//					ent = (Entity) overlapingObj;
-
 					if (ent instanceof Candy) {
 						((Candy) ent).onTouch(delta);
 					} else if (ent instanceof Log) {
 						((Log) ent).onTouch(delta);
+					} else if (ent instanceof Slade) {
+						((Slade) ent).onTouch(delta);
 					}
 				}
 			}
@@ -344,7 +368,8 @@ public class Player extends Entity implements IEntity {
 	private boolean flash;
 
 	public void attacked() {
-		if (!attackedTimerSet) {			
+		if (!attackedTimerSet) {
+			screen.audio.sfxPlayerHurt.play(screen.game.volume);
 			actualTimeToWait = System.currentTimeMillis() + (timeToWait * 1000L);
 			hp--;
 			flash = true;
@@ -397,11 +422,12 @@ public class Player extends Entity implements IEntity {
 	@Override
 	public void render2D(SpriteBatch batch, float delta) {
 		flash();
-		
+
 		if (drawSprite)
-			sprite.draw(batch);
+			if (!screen.playerWon)
+				sprite.draw(batch);
 	}
-	
+
 	private void flash() {
 		if (flash) {
 			if (!flashTimerSet) {

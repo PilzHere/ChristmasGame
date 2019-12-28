@@ -5,6 +5,7 @@ import java.util.Comparator;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -18,24 +19,22 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import mysko.pilzhere.christmasgame.ChristmasGame;
 import mysko.pilzhere.christmasgame.Utils;
-import mysko.pilzhere.christmasgame.entities.Slade;
+import mysko.pilzhere.christmasgame.audio.Audio;
 import mysko.pilzhere.christmasgame.entities.Entity;
 import mysko.pilzhere.christmasgame.entities.Island;
-import mysko.pilzhere.christmasgame.entities.Log;
 import mysko.pilzhere.christmasgame.entities.Player;
 import mysko.pilzhere.christmasgame.entities.PlayerTerrain;
 import mysko.pilzhere.christmasgame.entities.Seawave;
-import mysko.pilzhere.christmasgame.entities.SpriteDirection;
+import mysko.pilzhere.christmasgame.entities.Slade;
 import mysko.pilzhere.christmasgame.entities.Tree;
+import mysko.pilzhere.christmasgame.entities.enemies.Shark;
 import mysko.pilzhere.christmasgame.entities.enemies.Yeti;
-import mysko.pilzhere.christmasgame.entities.items.Candy;
 import mysko.pilzhere.christmasgame.entities.items.Candycane;
 import mysko.pilzhere.christmasgame.gui.GUI;
 import mysko.pilzhere.christmasgame.gui.GUIEntity;
@@ -48,6 +47,7 @@ public class GameScreen implements Screen {
 	public final AssetManager assMan;
 	private final SpriteBatch batch;
 	private final ModelBatch mdlBatch;
+	public final Audio audio;
 
 	private ShapeRenderer shapeRenderer;
 
@@ -61,13 +61,55 @@ public class GameScreen implements Screen {
 
 	private Player player;
 
+	public Shark shark; // getset
+
+	public boolean gameIsPaused;
+
 	public void setPlayer(Player player) {
-		if (this.player == null)
-			this.player = player;
+		this.player = player;
 	}
 
 	public Player getPlayer() {
 		return player;
+	}
+
+	public boolean playerWon; // get-set
+
+	private final Vector3 nw = new Vector3(-75, 0, 75);
+	private final Vector3 n = new Vector3(0, 0, 75);
+	private final Vector3 ne = new Vector3(75, 0, 75);
+	private final Vector3 e = new Vector3(75, 0, 0);
+	private final Vector3 se = new Vector3(75, 0, -75);
+	private final Vector3 s = new Vector3(0, 0, -75);
+	private final Vector3 sw = new Vector3(-75, 0, -75);
+	private final Vector3 w = new Vector3(-75, 0, 0);
+
+	Array<Vector3> sharkSpawnPositions = new Array<Vector3>();
+
+	public Vector3 getClosestSharkSpawnPoint() {
+		sharkSpawnPositions.add(nw);
+		sharkSpawnPositions.add(n);
+		sharkSpawnPositions.add(ne);
+		sharkSpawnPositions.add(e);
+		sharkSpawnPositions.add(se);
+		sharkSpawnPositions.add(s);
+		sharkSpawnPositions.add(sw);
+		sharkSpawnPositions.add(w);
+
+		float closestDist = 100;
+		Vector3 closestPos = new Vector3();
+		for (Vector3 vector3 : sharkSpawnPositions) {
+			float currentDist = Vector3.dst(player.position.x, player.position.y, player.position.z, vector3.x,
+					vector3.y, vector3.z);
+			if (currentDist < closestDist) {
+				closestDist = currentDist;
+				closestPos.set(vector3.cpy());
+			}
+		}
+
+		sharkSpawnPositions.clear();
+
+		return closestPos.cpy();
 	}
 
 	public GameScreen(ChristmasGame game) {
@@ -75,30 +117,67 @@ public class GameScreen implements Screen {
 		this.assMan = game.getAssMan();
 		this.batch = game.getBatch();
 		this.mdlBatch = game.getMdlBatch();
-
-		Utils.setScreen(this); // Never forget...
+		this.audio = game.getAudio();
 
 		cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		cam.near = 0.01f;
 		cam.far = 300f;
-		cam.position.set(0, 100, 175); // 0 1 0
+		cam.position.set(0, 100, 175);
 		cam.lookAt(Vector3.Zero);
-		cam.zoom = 0.5f;
+		if (Gdx.app.getType() == ApplicationType.WebGL)
+			cam.zoom = 0.125f;
+		else
+			cam.zoom = 0.5f;
 		cam.update();
 
 		viewport = new FitViewport(Gdx.graphics.getWidth() / game.getWindowScale(),
-				Gdx.graphics.getHeight() / game.getWindowScale(), cam); // original
-//		viewport = new FillViewport(1280, 720, cam);
-//		viewport = new StretchViewport(854, 480, cam);
+				Gdx.graphics.getHeight() / game.getWindowScale(), cam);
 
-		game.setWindowScale(5);
+		Utils.setViewport(viewport); // Never forget...
+
+		game.setWindowScale(4);
 		resizeWindow();
 
 		island = new Island(this, Vector3.Zero);
 
+		this.gui = new GUI(this);
+
+		entities.clear();
+
 		final Vector3 randomPosVector = new Vector3();
 
-		for (int i = 0; i < 50; i++) {
+		for (int i = 0; i < 100; i++) {
+			entities.add(new Tree(this, new Vector3(MathUtils.random(-35, 35), 0, MathUtils.random(-35, 35))));
+
+			float randomDist = 0f;
+			while (randomDist < 60) {
+				randomPosVector.set(getRandom(), 0, getRandom());
+				randomDist = randomPosVector.dst(Vector3.Zero);
+			}
+
+			entities.add(new Seawave(this, new Vector3(randomPosVector.x, 0, randomPosVector.z)));
+		}
+
+		final int randYetiAmount = MathUtils.random(5, 10);
+		for (int i = 0; i < randYetiAmount; i++) {
+			Vector3 yetiSpawn = new Vector3(MathUtils.random(-35, 35), 0, MathUtils.random(-35, 35));
+			entities.add(new Yeti(this, yetiSpawn.cpy()));
+		}
+	}
+
+	public void newGame() {
+		entities.clear();
+		player = null;
+
+		playerWon = false;
+		gameIsPaused = false;
+		gui.showMenu = false;
+
+		shark = null;
+
+		final Vector3 randomPosVector = new Vector3();
+
+		for (int i = 0; i < 100; i++) {
 			entities.add(new Tree(this, new Vector3(MathUtils.random(-35, 35), 0, MathUtils.random(-35, 35))));
 
 			float randomDist = 0f;
@@ -114,7 +193,7 @@ public class GameScreen implements Screen {
 		entities.add(
 				slade = new Slade(this, new Vector3(MathUtils.random(-100, 100), 50, MathUtils.random(-100, 100))));
 
-		final int randYetiAmount = MathUtils.random(5, 10);
+		final int randYetiAmount = MathUtils.random(7, 14);
 		for (int i = 0; i < randYetiAmount; i++) {
 			Vector3 yetiSpawn = new Vector3(MathUtils.random(-35, 35), 0, MathUtils.random(-35, 35));
 
@@ -129,7 +208,9 @@ public class GameScreen implements Screen {
 			entities.add(new Yeti(this, yetiSpawn.cpy()));
 		}
 
-		this.gui = new GUI(this);
+		for (int i = 0; i < randYetiAmount / 2; i++) {
+			entities.add(new Candycane(this, new Vector3(MathUtils.random(-40, 40), 0, MathUtils.random(-40, 40))));
+		}
 	}
 
 	private float getRandom() {
@@ -167,11 +248,13 @@ public class GameScreen implements Screen {
 		if (Gdx.input.isKeyJustPressed(Input.Keys.PLUS)) {
 			game.setWindowScale(game.getWindowScale() + game.stdWindowScaleIncrement);
 			resizeWindow();
+//			cam.zoom += 0.125f; // TEST
 		}
 
 		if (Gdx.input.isKeyJustPressed(Input.Keys.MINUS)) {
 			game.setWindowScale(game.getWindowScale() - game.stdWindowScaleIncrement);
 			resizeWindow();
+//			cam.zoom -= 0.125f; // TEST
 		}
 
 		if (Gdx.input.isKeyJustPressed(Input.Keys.F1)) {
@@ -179,18 +262,18 @@ public class GameScreen implements Screen {
 		}
 
 		if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-			Gdx.app.exit();
+			if (gui.showMenu)
+				Gdx.app.exit();
+			else
+				gameIsPaused = true;
+			gui.showMenu = true;
 		}
 
-		if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-			camSpin = !camSpin;
-		}
-
-//		if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-//			entities.add(new Comet(this, new Vector3(MathUtils.random(-75, 75), 50, MathUtils.random(-75, 75))));
+//		if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+//			camSpin = !camSpin;
 //		}
 
-		if (player != null) {
+		if (!gui.showMenu && player != null && !gameIsPaused) {
 			// TODO: If player is too far from middle = moves out while moving.
 			// Temporary solution is slower island rotation speed.
 			if (Gdx.input.isKeyPressed(Input.Keys.A)) {
@@ -214,31 +297,34 @@ public class GameScreen implements Screen {
 					player.chop(delta);
 
 					switch (player.spriteDir) {
-					case UP:
-						touchRect.setWidth(5);
-						touchRect.setHeight(28);
-						touchRect.setPosition(player.screenPos.x,
-								(player.screenPos.y + Gdx.graphics.getHeight() / 60f));
-
-//						touchRect.setPosition(player.screenPos.x,
-//								(player.screenPos.y + Gdx.graphics.getHeight() / 28f)); // old
+					case UP:						
+						touchRect.setWidth(8f / 2 * player.sprite.getScaleX());
+						touchRect.setHeight(48f / 2 * player.sprite.getScaleY());
+						
+						touchRect.setX(player.sprite.getX() + player.sprite.getWidth() / 2);
+						touchRect.setY(player.sprite.getY() + player.sprite.getHeight() * 0.75f);
 						break;
-					case DOWN:
-						touchRect.setWidth(5);
-						touchRect.setHeight(28);
-						touchRect.setPosition(player.screenPos.x,
-								(player.screenPos.y - Gdx.graphics.getHeight() / 15f));
+					case DOWN:						
+						touchRect.setWidth(8f / 2 * player.sprite.getScaleX());
+						touchRect.setHeight(48f / 2 * player.sprite.getScaleY());
+						
+						touchRect.setX(player.sprite.getX() + player.sprite.getWidth() / 2);
+						touchRect.setY(player.sprite.getY() - player.sprite.getHeight() * 0.25f);
+						
 						break;
-					case LEFT:
-						touchRect.setWidth(28);
-						touchRect.setHeight(5);
-						touchRect.setPosition(player.screenPos.x - (Gdx.graphics.getWidth() / 32f), player.screenPos.y);
+					case LEFT:						
+						touchRect.setWidth(48f / 2 * player.sprite.getScaleX());
+						touchRect.setHeight(8f / 2 * player.sprite.getScaleY());
+						
+						touchRect.setX(player.sprite.getX() - player.sprite.getWidth() / 3);
+						touchRect.setY(player.sprite.getY() + player.sprite.getHeight() / 2);
 						break;
-					case RIGHT:
-						touchRect.setWidth(28);
-						touchRect.setHeight(5);
-						touchRect.setPosition(player.screenPos.x + (Gdx.graphics.getWidth() / 120f),
-								player.screenPos.y);
+					case RIGHT:						
+						touchRect.setWidth(48f / 2 * player.sprite.getScaleX());
+						touchRect.setHeight(8f / 2 * player.sprite.getScaleY());
+						
+						touchRect.setX(player.sprite.getX() + player.sprite.getWidth());
+						touchRect.setY(player.sprite.getY() + player.sprite.getHeight() / 2);
 						break;
 					}
 
@@ -254,10 +340,33 @@ public class GameScreen implements Screen {
 					}
 				}
 			}
-		}
+		} else {
+			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+				System.err.println("WAT1");
+				gui.showMenu = false;
+				if (!gameIsPaused) {
+					System.err.println("WAT2");
+					newGame();
+				} else {
+					System.err.println("WAT3");
+					if (playerWon) {
+						System.err.println("WAT4");
+						newGame();
+					} else {
+						System.err.println("WAT5");
+						gameIsPaused = !gameIsPaused;
+					}
+				}
+			}
 
-		leftMouseButton(delta);
-		rightMouseButton(delta);
+			leftMouseButton(delta);
+			rightMouseButton(delta);
+		}
+	}
+
+	public void gameOver() {
+		setPlayer(null);
+		gui.showMenu = true;
 	}
 
 	private void leftMouseButton(float delta) {
@@ -330,13 +439,18 @@ public class GameScreen implements Screen {
 
 			placePos.set(ray.direction).scl(distance).add(ray.origin);
 
-			entities.add(new Candycane(this, placePos.cpy()));
+//			entities.add(new Candycane(this, placePos.cpy()));
 		}
 	}
 
 	private final int camRotSpeed = 3; // 25
 
 	private void tick(float delta) {
+		if (playerWon) {
+			gui.showMenu = true;
+			gameIsPaused = true;
+		}
+
 		rotateCamAroundIsland(cam, camRotSpeed * delta);
 		cam.lookAt(Vector3.Zero);
 		cam.update();
@@ -362,7 +476,7 @@ public class GameScreen implements Screen {
 		gui.tick(delta);
 	}
 
-	private boolean camSpin = false;
+	private boolean camSpin = true;
 
 	private void rotateCamAroundIsland(OrthographicCamera cam, float speed) {
 		if (camSpin)

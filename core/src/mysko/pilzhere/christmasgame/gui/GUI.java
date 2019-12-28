@@ -1,5 +1,7 @@
 package mysko.pilzhere.christmasgame.gui;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
@@ -15,9 +17,13 @@ public class GUI {
 	public final BitmapFont font01_16; // get-set
 	public BitmapFont currentFont; // get set
 
+	private final Texture texTitle;
+
 	private Player player;
 
 	public Array<GUIEntity> guiEnts = new Array<GUIEntity>(); // get set
+
+	public boolean showMenu = true;
 
 	private HeartIcon hI1;
 	private HeartIcon hI2;
@@ -32,6 +38,8 @@ public class GUI {
 		font01_32 = screen.assMan.get("fonts/font01_32.fnt");
 		font01_16 = screen.assMan.get("fonts/font01_16.fnt");
 
+		texTitle = screen.assMan.get("title.png");
+
 		if (screen.game.windowScale > 3.5f) {
 			currentFont = font01_32;
 		} else {
@@ -40,14 +48,20 @@ public class GUI {
 
 		player = screen.getPlayer();
 
-		guiEnts.add(new LogsIcon(screen, this, new Vector2(8, 8)));
-		guiEnts.add(new CandyIcon(screen, this, new Vector2(128, 8)));
+		guiEnts.add(new LogsIcon(screen, this, new Vector2(8, 0)));
+		guiEnts.add(new CandyIcon(screen, this, new Vector2(128, 0)));
 
-		hI1 = new HeartIcon(screen, this, new Vector2(256 + (32 * 1), 8));
-		hI2 = new HeartIcon(screen, this, new Vector2(256 + (32 * 2), 8));
-		hI3 = new HeartIcon(screen, this, new Vector2(256 + (32 * 3), 8));
-		hI4 = new HeartIcon(screen, this, new Vector2(256 + (32 * 4), 8));
-		hI5 = new HeartIcon(screen, this, new Vector2(256 + (32 * 5), 8));
+		System.out.println(Gdx.graphics.getWidth() * screen.game.windowScale);
+
+		hI1 = new HeartIcon(screen, this, new Vector2(Gdx.graphics.getWidth() / 2, 0));
+		hI2 = new HeartIcon(screen, this, new Vector2(Gdx.graphics.getWidth() / 2, 0));
+		hI2.offsetX = 5;
+		hI3 = new HeartIcon(screen, this, new Vector2(Gdx.graphics.getWidth() / 2, 0));
+		hI3.offsetX = 5 * 2;
+		hI4 = new HeartIcon(screen, this, new Vector2(Gdx.graphics.getWidth() / 2, 0));
+		hI4.offsetX = 5 * 3;
+		hI5 = new HeartIcon(screen, this, new Vector2(Gdx.graphics.getWidth() / 2, 0));
+		hI5.offsetX = 5 * 4;
 
 		guiEnts.add(hI1);
 		guiEnts.add(hI2);
@@ -149,7 +163,66 @@ public class GUI {
 		}
 	}
 
+	private final String strGameByPilz = "A game by Christian \"PilzHere\" Pilz";
+	private final String strIfPaused1 = "-PAUSED-";
+	private final String strIfPaused2 = "[ENTER] to continue";
+	private final String strIfWon1 = "[ENTER] to restart";
+	private final String strStart = "[ENTER] to start";
+	private final String strQuit = "[ESCAPE] to quit";
+	private final String strControls1 = "[WASD] to move";
+	private final String strControls2 = "[E] to chop";
+	private final String strControls3 = "[+ -] to change window size";
+	private final String strYouWon = "YOU WON - Santa survived!";
+	private final String strInfo = "Gather 100 logs to repair Santa's slade";
+	private int offset;
+
+	private float texTitlePosX;
+	private float texTitlePosY;
+
 	public void render2D(float delta) {
+		if (currentFont == font01_32)
+			offset = 24;
+		else
+			offset = 12;
+
+		texTitlePosX = (Gdx.graphics.getWidth() / 2) - (texTitle.getWidth() / 2);
+		texTitlePosY = (Gdx.graphics.getHeight() / 2) - (texTitle.getHeight() / 2);
+
+		if (showMenu) {
+			batch.draw(texTitle, texTitlePosX, texTitlePosY);
+
+			currentFont.draw(batch, strGameByPilz, 0, Gdx.graphics.getHeight());
+
+//			currentFont.draw(batch, "Cam zoom is: " + screen.cam.zoom, 0, Gdx.graphics.getHeight() - 40); // TEST
+
+			if (screen.gameIsPaused) {
+				if (!screen.playerWon) {
+					currentFont.draw(batch, strIfPaused1, texTitlePosX + (texTitle.getWidth() / 3),
+							texTitlePosY + 64 + offset);
+					currentFont.draw(batch, strIfPaused2, texTitlePosX + (texTitle.getWidth() / 4), texTitlePosY + 64);
+				}
+				currentFont.draw(batch, strQuit, texTitlePosX + (texTitle.getWidth() / 4), texTitlePosY + 64 - offset);
+				if (screen.playerWon) {
+					currentFont.draw(batch, strYouWon, texTitlePosX + (texTitle.getWidth() / 12), texTitlePosY + 112);
+					currentFont.draw(batch, strIfWon1, texTitlePosX + (texTitle.getWidth() / 4), texTitlePosY + 64);
+				}
+			} else {
+				currentFont.draw(batch, strInfo, texTitlePosX + (texTitle.getWidth() / 4) - 196,
+						texTitlePosY + 64 + offset * 4.5f);
+				currentFont.draw(batch, strControls1, texTitlePosX + (texTitle.getWidth() / 4),
+						texTitlePosY + 64 + offset * 2);
+				currentFont.draw(batch, strControls2, texTitlePosX + (texTitle.getWidth() / 4),
+						texTitlePosY + 64 + offset);
+				currentFont.draw(batch, strControls3, texTitlePosX + (texTitle.getWidth() / 4), texTitlePosY + 64);
+				currentFont.draw(batch, strStart, texTitlePosX + (texTitle.getWidth() / 4), texTitlePosY + 64 - offset); // 24
+																															// is
+																															// offset
+				currentFont.draw(batch, strQuit, texTitlePosX + (texTitle.getWidth() / 4),
+						texTitlePosY + 64 - offset * 2);
+			}
+
+		}
+
 		for (GUIEntity guiEnt : guiEnts) {
 			guiEnt.render2D(batch, delta);
 		}

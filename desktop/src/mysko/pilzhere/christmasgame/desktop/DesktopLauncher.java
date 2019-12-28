@@ -7,21 +7,21 @@ import com.badlogic.gdx.graphics.Color;
 import mysko.pilzhere.christmasgame.ChristmasGame;
 
 public class DesktopLauncher {
-	public static void main (String[] arg) {
+	public static void main(String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		
-		config.foregroundFPS = 144;
+
+		config.foregroundFPS = 60;
 		config.backgroundFPS = 60;
-		config.title = "ChristmasGame";
+		config.title = "Santa's Crashing Christmas";
 		config.fullscreen = false;
-		config.resizable = true;
+		config.resizable = false;
 		config.width = 256;
 		config.height = 144;
 		config.initialBackgroundColor = Color.WHITE;
 		config.samples = 0;
 		config.vSyncEnabled = false;
 //		config.addIcon(path, fileType);
-		
+
 		new LwjglApplication(new ChristmasGame(), config);
 	}
 }

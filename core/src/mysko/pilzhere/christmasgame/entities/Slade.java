@@ -15,7 +15,7 @@ public class Slade extends Entity implements IEntity {
 	private final Texture texSladeBroken;
 	private Sprite sprite;
 
-	public final Vector3 targetPos = new Vector3(); //get-set
+	public final Vector3 targetPos = new Vector3(); // get-set
 
 	public Slade(GameScreen screen, Vector3 position) {
 		super(screen, position);
@@ -28,6 +28,8 @@ public class Slade extends Entity implements IEntity {
 		targetPos.set(MathUtils.random(-10, 10), 0, MathUtils.random(-10, 10));
 
 		System.out.println("Slade added!");
+
+		screen.audio.sfxSlade.play(screen.game.volume);
 	}
 
 	private final Vector3 projPos = new Vector3();
@@ -36,8 +38,22 @@ public class Slade extends Entity implements IEntity {
 
 	private boolean isBroken;
 
+	private boolean targetPosSet;
+
 	@Override
 	public void tick(float delta) {
+		if (screen.playerWon) {
+			if (!targetPosSet) {
+				targetPos.set(MathUtils.random(-100, 100), 100, MathUtils.random(-100, 100));
+				position.y = 1;
+				isBroken = false;
+				screen.audio.sfxSlade.play(screen.game.volume);
+				targetPosSet = true;
+			}
+
+//			hasCrashed = false;
+		}
+
 		if (isBroken) {
 			if (sprite.getTexture() != texSladeBroken)
 				sprite.setTexture(texSladeBroken);
@@ -75,8 +91,8 @@ public class Slade extends Entity implements IEntity {
 		} else {
 			position.y = 0;
 
-			if (!hasExploded)
-				explode();
+			if (!hasCrashed)
+				crash();
 		}
 
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
@@ -98,17 +114,21 @@ public class Slade extends Entity implements IEntity {
 		super.tick(delta);
 	}
 
-	boolean hasExploded;
+	boolean hasCrashed;
 
-	private void explode() {
+	private void crash() {
+		screen.audio.sfxCrash.play(screen.game.volume);
 		screen.entities.add(new Player(screen, position.cpy()));
 		isBroken = true;
-		hasExploded = true;
+		hasCrashed = true;
 	}
 
 	@Override
 	public void onTouch(float delta) {
 		System.out.println("Slade touched!");
+		if (screen.getPlayer().logsAmount >= 100) {
+			screen.playerWon = true;
+		}
 	}
 
 	@Override

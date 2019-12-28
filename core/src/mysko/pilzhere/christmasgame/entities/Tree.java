@@ -21,20 +21,18 @@ public class Tree extends Entity implements IEntity {
 		shapeColor = Color.GREEN;
 
 		choppable = true;
-		
+
 		hp = 3;
-		
+
 		Random randomizer = new Random();
 		final boolean decorated = randomizer.nextBoolean();
 		if (decorated)
 			texture = screen.assMan.get("tree02.png");
 		else
 			texture = screen.assMan.get("tree01.png");
-		
-		
+
 		sprite = new Sprite(texture);
 		rect = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
-		
 
 		System.out.println("Tree added!");
 	}
@@ -47,11 +45,11 @@ public class Tree extends Entity implements IEntity {
 		if (hp <= 0) {
 			destroy = true;
 		}
-		
+
 		screenPos.set(Utils.calculateScreenPosition(position.cpy(), projPos.cpy()));
-		
-		setSpriteSize(sprite);		
-		setSpritePosition(sprite);		
+
+		setSpriteSize(sprite);
+		setSpritePosition(sprite);
 		setRectanglePosition(rect);
 		setRectangleSize(rect);
 
@@ -60,7 +58,8 @@ public class Tree extends Entity implements IEntity {
 
 	@Override
 	public void onChop(float delta) {
-		System.out.println("Tree touched!");
+//		System.out.println("Tree touched!");
+		screen.audio.sfxChop.play(screen.game.volume);
 		hp--;
 	}
 
@@ -71,6 +70,7 @@ public class Tree extends Entity implements IEntity {
 
 	@Override
 	public void destroy() {
+		screen.audio.sfxTreeDisapear.play(screen.game.volume);
 		System.err.println("Tree destroyed!");
 		screen.entities.add(new Log(screen, position.cpy()));
 	}
@@ -82,7 +82,7 @@ public class Tree extends Entity implements IEntity {
 	}
 
 	@Override
-	public void setRectanglePosition(Rectangle rect) {		
+	public void setRectanglePosition(Rectangle rect) {
 		rect.setX(sprite.getX());
 		rect.setY(sprite.getY());
 	}
@@ -94,7 +94,8 @@ public class Tree extends Entity implements IEntity {
 
 	@Override
 	public void setSpriteSize(Sprite sprite) {
-		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale, sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
+		sprite.setSize(sprite.getTexture().getWidth() / 4 * screen.game.windowScale,
+				sprite.getTexture().getWidth() / 4 * screen.game.getWindowScale());
 	}
 
 	@Override
