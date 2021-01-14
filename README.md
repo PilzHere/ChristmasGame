@@ -1,5 +1,6 @@
 # Santa's Crashing Christmas
-![Image description](jamCover.png)
+<p align="center">
+	<img src="jamCover.png"><br />
 
 Santa Claus, while delivering gifts to all the children have crashed on an island full of yetis and his slade is now broken.
 How will this all end?!
